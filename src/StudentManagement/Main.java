@@ -33,20 +33,54 @@ public class Main extends JFrame {
     private JButton btnLogout;
 
     public Main() {
-        // Tạo danh sách các khoa
+       // Tạo danh sách các khoa
         departments = new ArrayList<>();
-        departments.add(new Department("CN", "Công nghệ thông tin"));
-        departments.add(new Department("KH", "Khoa học máy tính"));
-        departments.add(new Department("KT", "Kế toán"));
-        departments.add(new Department("QTKD", "Quản trị kinh doanh"));
-        departments.add(new Department("CC", "Công nghệ thông tin - Định hướng ứng dụng"));
-        departments.add(new Department("AT", "An toàn thông tin"));
-        departments.add(new Department("TDH", "Tự động hóa"));
-        departments.add(new Department("VT", "Điện tử viễn thông"));
-        departments.add(new Department("DPG", "Thiết kế và phát triển game"));
-        departments.add(new Department("DPT", "Công nghệ đa phương tiện"));
-        departments.add(new Department("FT", "Công nghệ tài chính"));
-        departments.add(new Department("MR", "Marketing"));
+
+        // Khoa Công nghệ thông tin
+        Subject subject1 = new Subject("Chủ nghĩa xã hội khoa học", 2);
+        Subject subject2 = new Subject("Tiếng Anh (Course 2)", 4);
+        Subject subject3 = new Subject("Ngôn ngữ lập trình C++", 3);
+        Subject subject4 = new Subject("Toán rời rạc 1", 3);
+        Subject subject5 = new Subject("Xử lý tín hiệu số", 2);
+        Subject subject6 = new Subject("Xác suất thống kê", 3);
+
+       
+        Department cnDepartment = new Department("CN", "Công nghệ thông tin");
+        cnDepartment.addDefaultSubject(subject1);
+        cnDepartment.addDefaultSubject(subject2);
+        cnDepartment.addDefaultSubject(subject3);
+        cnDepartment.addDefaultSubject(subject4);
+        cnDepartment.addDefaultSubject(subject5);
+        cnDepartment.addDefaultSubject(subject6);
+
+
+        // Khoa Khoa học máy tính
+        Subject subject7 = new Subject("Vật lý 3 và thí nghiệm", 4);
+
+        Department khDepartment = new Department("KH", "Khoa học máy tính");
+        khDepartment.addDefaultSubject(subject1);
+        khDepartment.addDefaultSubject(subject2);
+        khDepartment.addDefaultSubject(subject3);
+        khDepartment.addDefaultSubject(subject4);
+        khDepartment.addDefaultSubject(subject5);
+        khDepartment.addDefaultSubject(subject7);
+
+        // Khoa Khoa học máy tính
+        Subject subject8 = new Subject("Triết học Mác-Lênin", 3);
+        Subject subject9 = new Subject("Lập trình hướng đối tượng", 3);
+        Subject subject10 = new Subject("Lập trình web", 3);
+
+        Department ccDepartment = new Department("CC", "Công nghệ thông tin (định hướng ứng dụng)");
+        ccDepartment.addDefaultSubject(subject8);
+        ccDepartment.addDefaultSubject(subject9);
+        ccDepartment.addDefaultSubject(subject10);
+        ccDepartment.addDefaultSubject(subject2);
+        ccDepartment.addDefaultSubject(subject4);
+
+        // Thêm khoa vào danh sách departments
+        departments.add(cnDepartment);
+        departments.add(khDepartment);
+        departments.add(ccDepartment);
 
         // Cài đặt giao diện
         setTitle("Quản lý sinh viên theo khoa");
@@ -132,15 +166,26 @@ public class Main extends JFrame {
             String[] genders = {"Nam", "Nữ"};
             JComboBox<String> genderBox = new JComboBox<>(genders);
             JTextField ageField = new JTextField();
-            JTextField gpaField = new JTextField();
     
+            // Lấy danh sách môn học mặc định từ department
+            List<Subject> subjects = new ArrayList<>();
+            JPanel subjectPanel = new JPanel(new GridLayout(0, 2));
+    
+            // Tạo giao diện nhập điểm cho các môn học mặc định
+            for (Subject subject : department.getDefaultSubjects()) {
+                JTextField gradeField = new JTextField();
+                subject.setGradeField(gradeField); // Gán trường nhập điểm cho môn học
+                subjectPanel.add(new JLabel(subject.getName() + " (Tín chỉ: " + subject.getCredits() + ")"));
+                subjectPanel.add(gradeField);
+                subjects.add(subject);
+            }
     
             Object[] fields = {
-                    "Mã SV:", idField,
-                    "Tên SV:", nameField,
-                    "Giới tính:", genderBox,
-                    "Tuổi:", ageField,
-                    "GPA:", gpaField,
+                "Mã SV:", idField,
+                "Tên SV:", nameField,
+                "Giới tính:", genderBox,
+                "Tuổi:", ageField,
+                "Nhập điểm các môn học:", subjectPanel
             };
     
             int option = JOptionPane.showConfirmDialog(this, fields, "Thêm sinh viên", JOptionPane.OK_CANCEL_OPTION);
@@ -149,42 +194,54 @@ public class Main extends JFrame {
                     String id = idField.getText();
                     String name = nameField.getText();
                     String gender = (String) genderBox.getSelectedItem();
-                    int age = Integer.parseInt(ageField.getText());  // Kiểm tra tuổi là số nguyên
-                    float gpa = Float.parseFloat(gpaField.getText());  // Kiểm tra GPA là số thực
-                   
+                    int age = Integer.parseInt(ageField.getText());
     
-                    // Kiểm tra giá trị GPA hợp lệ
-                    if (age <= 17) {
-                        JOptionPane.showMessageDialog(this, "Tuổi không hợp lệ!");
-                        return;
-                    }
-
-                    if (gpa < 0 || gpa > 4.0) {
-                        JOptionPane.showMessageDialog(this, "Điểm GPA phải nằm trong khoảng từ 0 đến 4.0!");
-                        return;
-                    }
-    
-                    // Kiểm tra các trường đầu vào
                     if (id.isEmpty() || name.isEmpty()) {
                         JOptionPane.showMessageDialog(this, "Mã sinh viên và tên sinh viên không thể để trống!");
                         return;
                     }
     
-                    // Tạo đối tượng sinh viên và thêm vào khoa
-                    Student student = new Student(id, name, gender, age, gpa); 
-                    if (department.addStudent(student)) {
-                        showStudentList();  // Hiển thị lại danh sách sinh viên
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Thêm sinh viên thất bại! Vui lòng kiểm tra mã SV.");
+                    if (age <= 17) {
+                        JOptionPane.showMessageDialog(this, "Tuổi không hợp lệ!");
+                        return;
                     }
+    
+                    // Cập nhật điểm vào các môn học
+                    for (Subject subject : subjects) {
+                        JTextField gradeField = subject.getGradeField();
+                        float grade = Float.parseFloat(gradeField.getText());
+                        if (grade < 0 || grade > 4) {
+                            JOptionPane.showMessageDialog(this, "Điểm phải trong khoảng từ 0 đến 4!");
+                            return;
+                        }
+                        subject.setGrade(grade); // Cập nhật điểm môn học
+                    }
+    
+                // Tạo sinh viên mới với GPA mặc định là 0
+                Student student = new Student(id, name, gender, age);
+
+                // Gán danh sách môn học cho sinh viên
+                student.setSubjects(subjects);
+
+                // Tính toán GPA và cập nhật lại
+                student.setGpa(student.calculateGPA());  // Tính và cập nhật GPA mới
+                
+                // Thêm sinh viên vào khoa
+                String result = department.addStudent(student);
+                if ("SUCCESS".equals(result)) {
+                    showStudentList(); // Cập nhật lại giao diện với GPA đã tính
+                    JOptionPane.showMessageDialog(this, "Thêm sinh viên thành công!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Thêm sinh viên thất bại! " + result);
+                }
+
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ! Hãy chắc chắn rằng tuổi và GPA là số.");
+                    JOptionPane.showMessageDialog(this, "Tuổi và điểm phải là số hợp lệ!");
                 }
             }
         }
     }
-    
-
+     
     // Sửa sinh viên
     private void editStudentDialog() {
         int selectedIndex = departmentBox.getSelectedIndex();
@@ -199,33 +256,60 @@ public class Main extends JFrame {
                         .orElse(null);
     
                 if (student != null) {
+                    // Các trường thông tin cơ bản của sinh viên
                     JTextField nameField = new JTextField(student.getName());
                     JTextField ageField = new JTextField(String.valueOf(student.getAge()));
-                    JTextField gpaField = new JTextField(String.valueOf(student.getGpa()));
+                    JComboBox<String> genderBox = new JComboBox<>(new String[]{"Nam", "Nữ"});
+                    genderBox.setSelectedItem(student.getGender());
     
-                    // Thêm JComboBox cho giới tính
-                    String[] genders = {"Nam", "Nữ"};
-                    JComboBox<String> genderBox = new JComboBox<>(genders);
-                    genderBox.setSelectedItem(student.getGender()); // Chọn giới tính hiện tại của sinh viên
+                    // Hiển thị danh sách môn học và cho phép chỉnh sửa điểm
+                    JPanel subjectPanel = new JPanel(new GridLayout(0, 2, 10, 10)); // Lưới 2 cột: tên môn và ô nhập điểm
+                    List<Subject> subjects = student.getSubjects();
+                    List<JTextField> gradeFields = new ArrayList<>(); // Danh sách JTextField lưu điểm
     
+                    for (Subject subject : subjects) {
+                        JLabel subjectLabel = new JLabel(subject.getName() + " (Tín chỉ: " + subject.getCredits() + ")");
+                        JTextField gradeField = new JTextField(String.valueOf(subject.getGrade()));
+                        gradeFields.add(gradeField);
+    
+                        subjectPanel.add(subjectLabel);
+                        subjectPanel.add(gradeField);
+                    }
+    
+                    // Tạo giao diện nhập liệu
                     Object[] fields = {
                             "Tên SV:", nameField,
                             "Tuổi:", ageField,
-                            "GPA:", gpaField,
-                            "Giới tính:", genderBox
+                            "Giới tính:", genderBox,
+                            "Chỉnh sửa điểm các môn học:", subjectPanel
                     };
     
-                    int option = JOptionPane.showConfirmDialog(this, fields, "Sửa sinh viên", JOptionPane.OK_CANCEL_OPTION);
+                    // Xác nhận và cập nhật dữ liệu
+                    int option = JOptionPane.showConfirmDialog(this, fields, "Sửa thông tin sinh viên", JOptionPane.OK_CANCEL_OPTION);
                     if (option == JOptionPane.OK_OPTION) {
                         try {
+                            // Cập nhật thông tin sinh viên
                             student.setName(nameField.getText());
                             student.setAge(Integer.parseInt(ageField.getText()));
-                            student.setGpa(Float.parseFloat(gpaField.getText()));
-                            student.setGender((String) genderBox.getSelectedItem()); // Cập nhật giới tính
+                            student.setGender((String) genderBox.getSelectedItem());
     
-                            showStudentList();
+                            // Cập nhật điểm của các môn học
+                            for (int i = 0; i < subjects.size(); i++) {
+                                float newGrade = Float.parseFloat(gradeFields.get(i).getText());
+                                if (newGrade < 0 || newGrade > 4) {
+                                    JOptionPane.showMessageDialog(this, "Điểm của môn học phải từ 0 đến 4!");
+                                    return;
+                                }
+                                subjects.get(i).setGrade(newGrade); // Cập nhật điểm môn học
+                            }
+    
+                            // Tính lại GPA cho sinh viên
+                            student.setGpa(student.calculateGPA());
+    
+                            showStudentList(); // Hiển thị lại danh sách sinh viên
+                            JOptionPane.showMessageDialog(this, "Cập nhật thông tin thành công!");
                         } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ!");
+                            JOptionPane.showMessageDialog(this, "Dữ liệu nhập vào không hợp lệ!");
                         }
                     }
                 } else {
@@ -234,8 +318,8 @@ public class Main extends JFrame {
             }
         }
     }
+ 
     
-
     // Xóa sinh viên
     private void deleteStudentDialog() {
         int selectedIndex = departmentBox.getSelectedIndex();

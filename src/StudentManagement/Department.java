@@ -4,15 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Department {
-    private String id; 
-    private String name; 
-    private List<Student> students; 
+    private String id;
+    private String name;
+    private List<Student> students;
+    private List<Subject> defaultSubjects; // Danh sách môn học mặc định
 
     public Department(String id, String name) {
         this.id = id;
         this.name = name;
         this.students = new ArrayList<>();
+        this.defaultSubjects = new ArrayList<>();
     }
+
 
     // Getter cho mã khoa
     public String getId() {
@@ -29,27 +32,43 @@ public class Department {
         return students;
     }
 
+    // Thêm môn học mặc định
+    public void addDefaultSubject(Subject subject) {
+        defaultSubjects.add(subject);
+    }
+
+    // Lấy danh sách môn học mặc định
+    public List<Subject> getDefaultSubjects() {
+        return defaultSubjects;
+    }
+
     // Kiểm tra định dạng mã sinh viên
     public boolean isValidStudentId(String studentId) {
-        // Mã SV phải bắt đầu bằng mã khoa (CN, KT, ...) và theo sau là số
         return studentId.matches("^" + this.id + "\\d+$");
     }
 
-    // Phương thức thêm sinh viên
-    public boolean addStudent(Student student) {
+   // Trong lớp addStudent:
+    public String addStudent(Student student) {
         if (!isValidStudentId(student.getId())) {
-            System.out.println("Mã sinh viên không hợp lệ! Mã SV phải bắt đầu bằng: " + id);
-            return false;
+            return "Mã sinh viên không hợp lệ! Mã SV phải bắt đầu bằng: " + id;
         }
 
         for (Student s : students) {
             if (s.getId().equals(student.getId())) {
-                System.out.println("Mã sinh viên đã tồn tại!");
-                return false;
+                return "Mã sinh viên đã tồn tại!";
             }
         }
+
+        // Gán danh sách môn học mặc định cho sinh viên
+        List<Subject> subjects = new ArrayList<>();
+        for (Subject defaultSubject : defaultSubjects) {
+            Subject subject = new Subject(defaultSubject.getName(), defaultSubject.getCredits());
+            subjects.add(subject); // Điểm mặc định là 0
+        }
+
+        student.setSubjects(subjects);
         students.add(student);
-        return true;
+        return "SUCCESS";
     }
 
-}
+}    
