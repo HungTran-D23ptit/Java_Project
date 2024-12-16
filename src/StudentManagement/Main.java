@@ -3,6 +3,7 @@ package StudentManagement;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 
@@ -25,6 +26,7 @@ public class Main extends JFrame {
     private JButton btnEdit;
     private JButton btnDelete;
     private JButton btnSearch;
+    private JButton btnDetails;
     private JButton btnShow;
     private JButton btnSort;
     private JButton btnStats;
@@ -105,10 +107,11 @@ public class Main extends JFrame {
 
         // Panel chứa các nút chức năng
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        btnAdd = new JButton("Thêm sinh viên");
-        btnEdit = new JButton("Sửa sinh viên");
-        btnDelete = new JButton("Xóa sinh viên");
-        btnSearch = new JButton("Tìm kiếm sinh viên");
+        btnAdd = new JButton("Thêm SV");
+        btnEdit = new JButton("Sửa SV");
+        btnDelete = new JButton("Xóa SV");
+        btnSearch = new JButton("Tìm kiếm SV");
+        btnDetails = new JButton("Xem chi tiết");
         btnShow = new JButton("Hiển thị danh sách");
         btnSort = new JButton("Sắp xếp theo điểm");
         btnStats = new JButton("Thống kê");
@@ -120,6 +123,7 @@ public class Main extends JFrame {
         buttonPanel.add(btnEdit);
         buttonPanel.add(btnDelete);
         buttonPanel.add(btnSearch);
+        buttonPanel.add(btnDetails);
         buttonPanel.add(btnShow);
         buttonPanel.add(btnSort);
         buttonPanel.add(btnStats);
@@ -139,6 +143,7 @@ public class Main extends JFrame {
         btnEdit.addActionListener(e -> editStudentDialog());
         btnDelete.addActionListener(e -> deleteStudentDialog());
         btnSearch.addActionListener(e -> searchStudentDialog());
+        btnDetails.addActionListener(e -> viewStudentDetailsDialog());
         btnSort.addActionListener(e -> sortStudentsByGpa());
         btnStats.addActionListener(e -> showStatisticsWithCharts());
         btnFilterGPA.addActionListener(e -> filterByGpa());
@@ -247,8 +252,8 @@ public class Main extends JFrame {
         int selectedIndex = departmentBox.getSelectedIndex();
         if (selectedIndex >= 0) {
             Department department = departments.get(selectedIndex);
-    
             String id = JOptionPane.showInputDialog(this, "Nhập mã sinh viên cần sửa:");
+    
             if (id != null) {
                 Student student = department.getStudents().stream()
                         .filter(s -> s.getId().equals(id))
@@ -256,22 +261,21 @@ public class Main extends JFrame {
                         .orElse(null);
     
                 if (student != null) {
-                    // Các trường thông tin cơ bản của sinh viên
                     JTextField nameField = new JTextField(student.getName());
                     JTextField ageField = new JTextField(String.valueOf(student.getAge()));
                     JComboBox<String> genderBox = new JComboBox<>(new String[]{"Nam", "Nữ"});
                     genderBox.setSelectedItem(student.getGender());
     
-                    // Hiển thị danh sách môn học và cho phép chỉnh sửa điểm
-                    JPanel subjectPanel = new JPanel(new GridLayout(0, 2, 10, 10)); // Lưới 2 cột: tên môn và ô nhập điểm
+                    // Tạo panel cho điểm môn học
+                    JPanel subjectPanel = new JPanel(new GridLayout(0, 2, 10, 10));
                     List<Subject> subjects = student.getSubjects();
                     List<JTextField> gradeFields = new ArrayList<>(); // Danh sách JTextField lưu điểm
     
+                    // Hiển thị điểm cũ của các môn học
                     for (Subject subject : subjects) {
                         JLabel subjectLabel = new JLabel(subject.getName() + " (Tín chỉ: " + subject.getCredits() + ")");
-                        JTextField gradeField = new JTextField(String.valueOf(subject.getGrade()));
+                        JTextField gradeField = new JTextField(String.valueOf(subject.getGrade())); // Điền điểm cũ vào
                         gradeFields.add(gradeField);
-    
                         subjectPanel.add(subjectLabel);
                         subjectPanel.add(gradeField);
                     }
@@ -284,11 +288,9 @@ public class Main extends JFrame {
                             "Chỉnh sửa điểm các môn học:", subjectPanel
                     };
     
-                    // Xác nhận và cập nhật dữ liệu
                     int option = JOptionPane.showConfirmDialog(this, fields, "Sửa thông tin sinh viên", JOptionPane.OK_CANCEL_OPTION);
                     if (option == JOptionPane.OK_OPTION) {
                         try {
-                            // Cập nhật thông tin sinh viên
                             student.setName(nameField.getText());
                             student.setAge(Integer.parseInt(ageField.getText()));
                             student.setGender((String) genderBox.getSelectedItem());
@@ -303,7 +305,7 @@ public class Main extends JFrame {
                                 subjects.get(i).setGrade(newGrade); // Cập nhật điểm môn học
                             }
     
-                            // Tính lại GPA cho sinh viên
+                            // Tính lại GPA
                             student.setGpa(student.calculateGPA());
     
                             showStudentList(); // Hiển thị lại danh sách sinh viên
@@ -317,8 +319,8 @@ public class Main extends JFrame {
                 }
             }
         }
-    }
- 
+    }    
+
     
     // Xóa sinh viên
     private void deleteStudentDialog() {
@@ -360,6 +362,104 @@ public class Main extends JFrame {
             }
         }
     }
+
+    // Xem chi tiết sinh viên
+    private void viewStudentDetailsDialog() {
+        int selectedIndex = departmentBox.getSelectedIndex();
+        if (selectedIndex >= 0) {
+            Department department = departments.get(selectedIndex);
+    
+            // Hộp thoại nhập mã sinh viên
+            String studentId = JOptionPane.showInputDialog(this, "Nhập mã sinh viên cần xem:");
+    
+            if (studentId != null && !studentId.isEmpty()) {
+                // Tìm kiếm sinh viên theo mã
+                Student student = department.getStudents().stream()
+                        .filter(s -> s.getId().equals(studentId))
+                        .findFirst()
+                        .orElse(null);
+    
+                if (student != null) {
+                    // Hiển thị chi tiết sinh viên
+                    showStudentDetails(student);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Không tìm thấy sinh viên với mã: " + studentId);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Mã sinh viên không được để trống!");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một khoa trước!");
+        }
+    }
+
+    private void showStudentDetails(Student student) {
+        JDialog detailDialog = new JDialog(this, "Thông tin chi tiết sinh viên", true);
+        detailDialog.setSize(600, 400);
+        detailDialog.setLayout(new BorderLayout());
+    
+        // Panel hiển thị thông tin chi tiết
+        JPanel infoPanel = new JPanel(new GridLayout(0, 2));
+        infoPanel.add(new JLabel("Mã sinh viên:"));
+        infoPanel.add(new JLabel(student.getId()));
+        infoPanel.add(new JLabel("Tên sinh viên:"));
+        infoPanel.add(new JLabel(student.getName()));
+        infoPanel.add(new JLabel("Giới tính:"));
+        infoPanel.add(new JLabel(student.getGender()));
+        infoPanel.add(new JLabel("Tuổi:"));
+        infoPanel.add(new JLabel(String.valueOf(student.getAge())));
+        infoPanel.add(new JLabel("GPA:"));
+        infoPanel.add(new JLabel(String.format("%.2f", student.getGpa())));
+    
+        // Tạo email tự động
+        String email = student.generateEmail();
+        infoPanel.add(new JLabel("Email:"));
+        infoPanel.add(new JLabel(email));
+    
+        // Đồ thị điểm các môn học
+        JPanel chartPanel = createBarChart(student);
+    
+        // Thêm vào cửa sổ
+        detailDialog.add(infoPanel, BorderLayout.NORTH);
+        detailDialog.add(chartPanel, BorderLayout.CENTER);
+    
+        detailDialog.setVisible(true);
+    }
+    
+
+    private JPanel createBarChart(Student student) {
+        // Khởi tạo dataset mới
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    
+        // Duyệt qua tất cả các môn học của sinh viên và thêm điểm vào dataset
+        for (Subject subject : student.getSubjects()) {
+            System.out.println("Môn học: " + subject.getName() + ", Điểm: " + subject.getGrade());
+            // Thêm điểm của mỗi môn học vào dataset
+            dataset.addValue(subject.getGrade(), "Điểm", subject.getName());
+        }
+    
+        // Tạo biểu đồ cột với dataset chứa điểm của các môn học
+        JFreeChart barChart = ChartFactory.createBarChart(
+                "Điểm các môn học",  // Tiêu đề biểu đồ
+                "Môn học",            // Trục X (Tên môn học)
+                "Điểm",               // Trục Y (Điểm các môn học)
+                dataset,              // Dữ liệu
+                PlotOrientation.VERTICAL,
+                false,                 // Không cần chú thích
+                true,                  // Hiển thị tooltip
+                false                  // Không cần URL
+        );
+
+        barChart.getCategoryPlot().getRangeAxis().setRange(0, 4);
+    
+        // Đóng gói biểu đồ trong ChartPanel
+        ChartPanel chartPanel = new ChartPanel(barChart);
+        chartPanel.setPreferredSize(new Dimension(500, 300));  // Kích thước của biểu đồ
+    
+        // Trả về panel chứa biểu đồ
+        return chartPanel;
+    }
+         
 
     // Sắp xếp sinh viên theo GPA
     private void sortStudentsByGpa() {
